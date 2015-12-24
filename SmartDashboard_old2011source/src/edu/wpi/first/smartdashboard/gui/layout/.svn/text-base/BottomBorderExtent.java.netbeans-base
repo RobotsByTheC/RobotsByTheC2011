@@ -1,0 +1,109 @@
+package edu.wpi.first.smartdashboard.gui.layout;
+
+import edu.wpi.first.smartdashboard.util.CollectionUpdateRecord;
+import java.awt.Point;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ *
+ * @author paul
+ */
+public class BottomBorderExtent extends BorderExtent {
+    private Set<Extent> shiftConstraints = new HashSet<Extent>();
+
+    public BottomBorderExtent(int yOffset, int width) {
+        super(new Point(0, yOffset), width, 0);
+    }
+
+    public BottomBorderExtent(BottomBorderExtent e) {
+        super(e);
+    }
+
+    @Override
+    public void setHeight(int height) {
+    }
+
+    @Override
+    public int getRelativeShrinkConstraint() {
+        int min = -1;
+        for(Extent e : getAdjacentExtents()) {
+            if((min < 0 || e.getHeight() < min) && e.splitable()) {
+                min = e.getHeight();
+                shiftConstraints.clear();
+                shiftConstraints.add(e);
+            } else if(e.getHeight() == min && e.splitable()) {
+                shiftConstraints.add(e);
+            }
+        }
+        return (min >= 0) ? min : 0;
+    }
+
+    @Override
+    public CollectionUpdateRecord<Extent> shift(int shiftAmount) {
+        Set<Extent> added = new HashSet<Extent>();
+        Set<Extent> removed = new HashSet<Extent>();
+
+        if(shiftAmount < 0) {
+            if(shiftConstraints.isEmpty())
+                return null;
+
+            int maxUpShift = -((Extent) shiftConstraints.toArray()[0]).getHeight();
+
+            if(shiftAmount < maxUpShift)
+                return null;
+
+            if(shiftAmount == maxUpShift) {
+                // Remove spacer(s) which are no longer necessary.
+                removed.addAll(shiftConstraints);
+                for(Extent e : shiftConstraints) {
+                    Set<Extent> adjacentExtentCopy = new HashSet<Extent>(e.getAdjacentExtents());
+                    for(Extent i : adjacentExtentCopy) {
+                        if(!i.splitable())
+                            // This border will be adjacent to the blocking
+                            // extent adjacent to this spacer after the shift.
+                            Extent.addEdge(this, i);
+
+                        Extent.removeEdge(e, i);
+                    }
+                }
+            }
+        }
+
+        if(shiftAmount != 0) {
+            // Move this border to the right place
+            m_pos.y += shiftAmount;
+
+            // Resize the rest
+            for(Extent e : filterResizableExtents(getAdjacentExtents())) {
+                e.setHeight(e.getHeight() + shiftAmount);
+            }
+        }
+
+        if(shiftAmount > 0) {
+            // Expanding (shifting down)
+            // Create new spacer extents where necessary
+            for(Extent blockingE : filterNonResizableExtents(getAdjacentExtents())) {
+                Point newPos = blockingE.getPosition();
+                newPos.y += blockingE.getHeight();
+                FreeSpaceExtent spacer = new FreeSpaceExtent(newPos,
+                                                             blockingE.getWidth(),
+                                                             shiftAmount);
+                Extent.addAdjacentEdges(spacer, this.getAdjacentExtents());
+                Extent.addEdge(blockingE, spacer);
+                Extent.addEdge(spacer, this);
+
+                Extent.removeEdge(blockingE, this);
+
+                added.add(spacer);
+            }
+        }
+
+        return new CollectionUpdateRecord<Extent>(added, removed);
+    }
+
+    @Override
+    public String toString() {
+        return "BottomBorderExtent: " + m_pos.toString() + " " + m_width + " " + m_height;
+    }
+}

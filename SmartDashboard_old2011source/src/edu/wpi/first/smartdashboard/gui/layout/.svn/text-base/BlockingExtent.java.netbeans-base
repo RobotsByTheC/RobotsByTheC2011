@@ -1,0 +1,72 @@
+package edu.wpi.first.smartdashboard.gui.layout;
+
+import edu.wpi.first.smartdashboard.util.CollectionUpdateRecord;
+import java.awt.Point;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * An Extent in which a DisplayElement may not be placed (i.e. it is
+ * occupied).
+ *
+ * @author pmalmsten
+ */
+public class BlockingExtent extends Extent {
+    protected BlockingExtent() {
+        super();
+    }
+
+    public BlockingExtent(Point pos, int width, int height) {
+        super(pos, width, height);
+    }
+
+    public BlockingExtent(Extent other) {
+        super(other);
+    }
+
+    @Override
+    public boolean splitable() {
+        return false;
+    }
+
+    /**
+     * Returns the space occupied by this BlockingExtent to the free space pool
+     * and attempts to assimilate it into nearby free space.
+     */
+    public CollectionUpdateRecord<Extent> delete() {
+        Set<Extent> added = new HashSet<Extent>();
+        Set<Extent> removed = new HashSet<Extent>();
+
+        Set<Extent> oldAdjacentEdges = new HashSet<Extent>(m_adjacentExtents);
+        FreeSpaceExtent freed = new FreeSpaceExtent(m_pos, m_width, m_height);
+
+        for(Extent e : oldAdjacentEdges) {
+            Extent.removeEdge(this, e);
+            Extent.addEdge(freed, e);
+        }
+
+        freed.assimilate(added, removed);
+
+        // Manage freed's membership in the master list locally because
+        // it hasn't been sent to the caller yet.
+        if(!removed.contains(freed))
+            // It wasn't deleted during the assmiliation, so inform the caller
+            // of it.
+            added.add(freed);
+        else
+            // It was deleted during the assimilation, so don't inform
+            // the caller of it (i.e. it isn't added nor removed, it no
+            // longer exists).
+            removed.remove(freed);
+
+        // Always remove this object because it was replaced
+        removed.add(this);
+
+        return new CollectionUpdateRecord<Extent>(added, removed);
+    }
+
+    @Override
+    public String toString() {
+        return "BlockingExtent: " + m_pos.toString() + " " + m_width + " " + m_height;
+    }
+}

@@ -1,0 +1,33 @@
+package edu.wpi.first.smartdashboard.gui.layout;
+
+import edu.wpi.first.smartdashboard.util.CollectionUpdateRecord;
+import java.awt.Point;
+
+/**
+ * Represents a border of the usable GUI area. Its primary purpose is to allow
+ * resizing of a Extent adjacency graph.
+ *
+ * @author pmalmsten
+ */
+public abstract class BorderExtent extends FreeSpaceExtent {
+    public BorderExtent(Point pos, int width, int height) {
+        super();
+
+        if(pos == null)
+            throw new RuntimeException("Point must not be null");
+
+        if(width > 0 && height > 0)
+            throw new RuntimeException("A BorderExtent cannot contain any area; its height or width must be zero.");
+
+        this.m_pos = pos;
+        this.m_width = width;
+        this.m_height = height;
+    }
+
+    public BorderExtent(BorderExtent other) {
+        super(other);
+    }
+
+    public abstract int getRelativeShrinkConstraint();
+    public abstract CollectionUpdateRecord<Extent> shift(int shiftAmount);
+}

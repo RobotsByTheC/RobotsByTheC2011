@@ -1,0 +1,8 @@
+*~
+
+build/
+j2meclasses/
+*conflicted copy*
+__MACOSX/
+*.class
+suite/

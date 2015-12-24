@@ -1,0 +1,27 @@
+K 26
+svn:wc:ra_dav:activity-url
+V 36
+/svn/repos/smart_dashboard/!svn/act/
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/repos/smart_dashboard/!svn/ver/150/client/smartdashboard
+END
+manifest.mf
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/repos/smart_dashboard/!svn/ver/3/client/smartdashboard/manifest.mf
+END
+build.xml
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/repos/smart_dashboard/!svn/ver/95/client/smartdashboard/build.xml
+END
+nbbuild.xml
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/repos/smart_dashboard/!svn/ver/118/client/smartdashboard/nbbuild.xml
+END
